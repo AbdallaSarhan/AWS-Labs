@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+echo "== delete objects =="
+
+# Check for bucket name
+if [ -z "$1" ]; then
+    echo "There needs to be a bucket name"
+    exit 1
+fi
+
+BUCKET_NAME=$1
+
+# Check if the bucket has objects
+OBJECT_COUNT=$(aws s3api list-objects-v2 --bucket "$BUCKET_NAME" --query 'length(Contents)' --output text)
+if [ "$OBJECT_COUNT" -eq 0 ]; then
+    echo "Bucket is empty. Nothing to delete."
+    exit 0
+fi
+
+# Generate the JSON file for delete-objects
+aws s3api list-objects-v2 --bucket "$BUCKET_NAME" \
+--query 'Contents[].Key' --output json \
+| jq -r '{Objects: [.[] | {Key: .}]}' > /tmp/delete_objects.json
+
+# Delete objects using the generated JSON file
+aws s3api delete-objects --bucket "$BUCKET_NAME" --delete file:///tmp/delete_objects.json
