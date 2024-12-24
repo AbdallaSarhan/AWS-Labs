@@ -22,3 +22,4 @@ export class CdkStack extends Stack {
 // cdk bootstrap to create cdk toolkit
 // cdk synth
 // cdk deploy
+// cdk destroy
